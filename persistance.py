@@ -18,7 +18,9 @@ from vehicule import Vehicule, VoitureElectrique, Camion
 # principe ouvert/fermé : ajouter un type = une ligne ici, sans toucher
 # à la fabrique (vs une cascade if/elif à éditer en son cœur).
 _FABRIQUES = {
-    ...
+    "Vehicule": Vehicule,
+    "VoitureElectrique": VoitureElectrique,
+    "Camion": Camion
 }
 
 
@@ -26,7 +28,18 @@ def vehicule_depuis_dict(donnees):
     # Lire le champ « type », choisir la classe dans le registre, puis
     # déléguer à sa classmethod from_dict. Type absent ou inconnu -> erreur.
     # Même rôle que livre_depuis_dict.
-    ...
+    if not isinstance(donnees, dict):
+        raise TypeError("Les données doivent être un dictionnaire.")
+        
+    if "type" not in donnees:
+        raise KeyError("Le champ 'type' est absent des données.")
+        
+    type_classe = donnees["type"]
+    if type_classe not in _FABRIQUES:
+        raise ValueError(f"Type de véhicule inconnu ou invalide : {type_classe}")
+        
+    classe = _FABRIQUES[type_classe]
+    return classe.from_dict(donnees)
 
 
 # --- Persistance JSON ---
@@ -34,10 +47,19 @@ def vehicule_depuis_dict(donnees):
 def sauvegarder_flotte_json(vehicules, chemin):
     # Transformer chaque véhicule par SON to_dict (dispatch polymorphe,
     # sans test de type), puis écrire la liste de dicts en JSON.
-    ...
+    liste_dicts = [v.to_dict() for v in vehicules]
+    with open(chemin, "w", encoding="utf-8") as f:
+        json.dump(liste_dicts, f, indent=4, ensure_ascii=False)
+
 
 
 def charger_flotte_json(chemin):
     # Relire le JSON et confier chaque dict à la fabrique, qui restitue le
     # type exact d'origine. Un parc mélangé revient à l'identique.
-    ...
+    with open(chemin, "r", encoding="utf-8") as f:
+        liste_dicts = json.load(f)
+        
+    if not isinstance(liste_dicts, list):
+        raise TypeError("Le fichier JSON doit contenir une liste.")
+        
+    return [vehicule_depuis_dict(d) for d in liste_dicts]
