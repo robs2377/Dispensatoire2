@@ -16,7 +16,7 @@ class Flotte:
 
     def __init__(self):
         # Collection interne : une liste (préserve l'ordre d'ajout).
-          self._vehicules = []
+          self._vehicules = {}
 
     # --- ajouter, retirer ---
 
@@ -25,22 +25,19 @@ class Flotte:
         # doublon de châssis déjà présent (ValueError). Indice : « déjà
         # présent ? » se teste élégamment avec l'opérateur « in » sur self.
         if not isinstance(vehicule, Vehicule):
-            raise TypeError("L'objet ajouté doit être un Véhicule.")
-            
-        for vehicule_existant in self._vehicules:
-            if vehicule_existant.numero_chassis == vehicule.numero_chassis:
-                raise KeyError(f"Le véhicule avec le châssis {vehicule.numero_chassis} existe déjà.")
-                
-        self._vehicules.append(vehicule)
+            raise TypeError("Seuls les objets de type Vehicule peuvent être ajoutés.")
+        if vehicule.numero_chassis in self._vehicules:
+            raise ValueError("Un véhicule avec ce numero de châssis existe déjà dans la flotte.")
+        self._vehicules[vehicule.numero_chassis] = vehicule
 
     def retirer(self, vehicule):
         # Refuser un non-Vehicule (TypeError) ; absent -> KeyError.
         # __eq__ de Vehicule (par châssis) localise l'élément à retirer.
+        if not isinstance(vehicule, Vehicule):
+            raise TypeError("Le paramètre doit être une instance de Vehicule.")
         if vehicule.numero_chassis not in self._vehicules:
-            raise KeyError(f"Impossible de retirer : aucun véhicule avec le châssis {vehicule.numero_chassis}.")
-            
-        # .pop() supprime la clé et renvoie la valeur associée d'un coup
-        return self._vehicules.pop(vehicule.numero_chassis)
+            raise KeyError("Véhicule absent de la flotte.")
+        del self._vehicules[vehicule.numero_chassis]
 
 
     # --- Protocole de conteneur ---
@@ -53,7 +50,9 @@ class Flotte:
         # une chaîne de châssis. Tout autre type -> False (sans lever).
         if isinstance(item, Vehicule):
             return item.numero_chassis in self._vehicules
-        return item in self._vehicules
+        if isinstance(item, str):
+            return item in self._vehicules
+        return False
 
     def __iter__(self):
         # Itérer dans l'ordre d'ajout.
@@ -66,17 +65,15 @@ class Flotte:
         # Renvoyer le véhicule de ce châssis ; absent -> KeyError.
         if numero_chassis not in self._vehicules:
             raise KeyError(f"Aucun véhicule trouvé avec le châssis {numero_chassis}.")
-            
         return self._vehicules[numero_chassis]
 
     def vehicules_disponibles(self):
         # Liste des véhicules dont disponible vaut True, dans l'ordre d'ajout.
-        dispos = [v for v in self._vehicules.values() if v.disponible]
-        return sorted(dispos, key=lambda v: (v.marque, v.modele))
+        return [v for v in self._vehicules.values() if v.disponible]
 
     @property
     def nombre_disponibles(self):
-        return sum(1 for v in self.vehicules.values() if v.disponible)
+        return sum(1 for v in self._vehicules.values() if v.disponible)
 
     # --- Représentation ---
 

@@ -32,7 +32,7 @@ def vehicule_depuis_dict(donnees):
         raise TypeError("Les données doivent être un dictionnaire.")
         
     if "type" not in donnees:
-        raise KeyError("Le champ 'type' est absent des données.")
+        raise ValueError("Le champ 'type' est absent des données.")
         
     type_classe = donnees["type"]
     if type_classe not in _FABRIQUES:

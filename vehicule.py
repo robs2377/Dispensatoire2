@@ -24,15 +24,15 @@ class Vehicule:
             raise TypeError("la marque et le modele doivent etre des chaine de caractere")
         if marque.strip() =="" or modele.strip()== "" :
             raise ValueError("la marque et le modele ne peuvent pas etre des chaines vides ")
-        if not self.chassis_valide(numero_chassis):
+        if not isinstance (numero_chassis, str):
             raise TypeError("le numero de chassis doit etre une chaine de caractere..")
         if not self.chassis_valide(numero_chassis):
             raise ValueError("le numero de chassis '{numero_chassis}' est invalide ")
-        if not isinstance(nb_places, int):
+        if  isinstance(nb_places, bool) or not isinstance(nb_places, int):
             raise TypeError("le nombre de place doit etre un entier")
         if not (1<= nb_places <= 80):
             raise ValueError("le nombre de place doit se trouver entre 1 et 80")
-        if not isinstance(annee, int):
+        if not isinstance(annee, int) or isinstance(annee, bool):
             raise TypeError("l'annee doit etre un entier")
         if annee < 1886 :
             raise ValueError("l'annee doit etre superieur ou egal a 1886")
@@ -175,7 +175,8 @@ class Vehicule:
     # --- Représentations ---
 
     def __str__(self):
-        return f"{self.marque} {self.modele} ({self.numero_chassis})"
+         etat = "disponible" if self.disponible else "loué"
+         return f"{self.marque} {self.modele} ({self.numero_chassis}) - {etat}"
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.marque}', '{self.modele}', '{self.numero_chassis}', {self.nb_places}, {self.annee})"
@@ -270,7 +271,8 @@ class VoitureElectrique(Vehicule):
          return f"{super().fiche_resume()} [électrique, {self.autonomie_km} km]"
 
     def __str__(self):
-        return f"{self.marque} {self.modele} ({self.numero_chassis})"
+        etat = "disponible" if self.disponible else "loué"
+        return f"{self.marque} {self.modele} ({self.numero_chassis}) - {etat}"
 
     def __repr__(self):
          return (f"{self.__class__.__name__}('{self.marque}', '{self.modele}', "
@@ -317,11 +319,11 @@ class Camion(Vehicule):
             raise TypeError("Le nombre de places et l'année doivent être des entiers.")
             
         try:
-            charge_util_t = float(champs[5])  
+            charge_utile_t = float(champs[5])  
         except ValueError:
             raise TypeError("La charge utile doit être un nombre réel (float).")
 
-        return cls(marque, modele, numero_chassis, nb_places, annee, charge_util_t)
+        return cls(marque, modele, numero_chassis, nb_places, annee, charge_utile_t)
 
 
     def to_dict(self):
@@ -354,8 +356,9 @@ class Camion(Vehicule):
         return f"{self.charge_utile_t} t de charge"
 
     def __str__(self):
-         return f"{self.marque} {self.modele} ({self.numero_chassis})"
+         etat = "disponible" if self.disponible else "loué"
+         return f"{self.marque} {self.modele} ({self.numero_chassis}) - {etat}"
 
     def __repr__(self):
          return (f"{self.__class__.__name__}('{self.marque}', '{self.modele}', "
-                f"'{self.numero_chassis}', {self.nb_places}, {self.annee}, {self.charge_util_t})")
+                f"'{self.numero_chassis}', {self.nb_places}, {self.annee}, {self.charge_utile_t})")
